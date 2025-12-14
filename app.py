@@ -2,23 +2,14 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# ======================
-# PAGE CONFIG
-# ======================
 st.set_page_config(
     page_title="Customer Churn Prediction",
     page_icon="📉",
     layout="wide"
 )
 
-# ======================
-# LOAD MODEL
-# ======================
 model = joblib.load("knn_churn_pipeline.pkl")
 
-# ======================
-# CUSTOM CSS
-# ======================
 st.markdown("""
 <style>
 .block-container {
@@ -33,9 +24,6 @@ div[data-testid="stMetric"] {
 </style>
 """, unsafe_allow_html=True)
 
-# ======================
-# SIDEBAR
-# ======================
 with st.sidebar:
     st.header("📌 About App")
     st.write("""
@@ -50,16 +38,10 @@ with st.sidebar:
     - Algorithm: KNN  
     """)
 
-# ======================
-# TITLE
-# ======================
 st.title("📉 Customer Churn Prediction")
 st.caption("Interactive churn risk analysis for customer retention")
 st.divider()
 
-# ======================
-# INPUT SECTION
-# ======================
 col1, col2 = st.columns(2)
 
 with col1:
@@ -86,9 +68,6 @@ with col2:
         ["Basic", "Standard", "Premium"]
     )
 
-# ======================
-# INPUT DATAFRAME
-# ======================
 input_df = pd.DataFrame([{
     "Age": age,
     "Tenure": tenure,
@@ -102,9 +81,6 @@ input_df = pd.DataFrame([{
     "Contract Length": contract
 }])
 
-# ======================
-# PREDICT BUTTON (INI PENTING!)
-# ======================
 st.divider()
 
 predict_clicked = st.button(
@@ -112,9 +88,6 @@ predict_clicked = st.button(
     use_container_width=True
 )
 
-# ======================
-# PREDICTION RESULT
-# ======================
 if predict_clicked:
     pred = model.predict(input_df)[0]
     prob = model.predict_proba(input_df)[0][1]
@@ -146,3 +119,4 @@ if predict_clicked:
         - Upselling opportunities
         - Loyalty programs
         """)
+
