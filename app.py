@@ -2,15 +2,23 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# Load trained pipeline
-model = joblib.load("knn_churn_pipeline.pkl")
-
+# ======================
+# PAGE CONFIG
+# ======================
 st.set_page_config(
     page_title="Customer Churn Prediction",
     page_icon="📉",
     layout="wide"
 )
 
+# ======================
+# LOAD MODEL
+# ======================
+model = joblib.load("knn_churn_pipeline.pkl")
+
+# ======================
+# CUSTOM CSS
+# ======================
 st.markdown("""
 <style>
 .block-container {
@@ -25,11 +33,14 @@ div[data-testid="stMetric"] {
 </style>
 """, unsafe_allow_html=True)
 
+# ======================
+# SIDEBAR
+# ======================
 with st.sidebar:
-    st.header("📌 About")
+    st.header("📌 About App")
     st.write("""
-    Customer churn prediction app using
-    **K-Nearest Neighbors (KNN)**.
+    This application predicts **customer churn risk**
+    using **K-Nearest Neighbors (KNN)**.
     """)
 
     st.header("⚙️ Model Info")
@@ -39,17 +50,24 @@ with st.sidebar:
     - Algorithm: KNN  
     """)
 
+# ======================
+# TITLE
+# ======================
 st.title("📉 Customer Churn Prediction")
 st.caption("Interactive churn risk analysis for customer retention")
 st.divider()
 
+# ======================
+# INPUT SECTION
+# ======================
 col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("👤 Customer Profile")
-    age = st.number_input("Age", 18, 100)
+
+    age = st.slider("Age", 18, 80, 30)
     gender = st.selectbox("Gender", ["Male", "Female"])
-    tenure = st.number_input("Tenure", 0, 100)
+    tenure = st.slider("Tenure (months)", 0, 120, 12)
     contract = st.selectbox(
         "Contract Length",
         ["Monthly", "Quarterly", "Annual"]
@@ -57,12 +75,74 @@ with col1:
 
 with col2:
     st.subheader("📊 Usage & Payment")
-    usage = st.number_input("Usage Frequency", 0, 100)
-    support = st.number_input("Support Calls", 0, 50)
-    delay = st.number_input("Payment Delay", 0, 100)
-    spend = st.number_input("Total Spend", 0.0)
-    last_interaction = st.number_input("Last Interaction", 0, 100)
+
+    usage = st.slider("Usage Frequency", 0, 100, 20)
+    support = st.slider("Support Calls", 0, 20, 1)
+    delay = st.slider("Payment Delay (days)", 0, 60, 5)
+    spend = st.slider("Total Spend", 0, 20000, 5000)
+    last_interaction = st.slider("Last Interaction (days ago)", 0, 90, 7)
     sub_type = st.selectbox(
         "Subscription Type",
         ["Basic", "Standard", "Premium"]
     )
+
+# ======================
+# INPUT DATAFRAME
+# ======================
+input_df = pd.DataFrame([{
+    "Age": age,
+    "Tenure": tenure,
+    "Usage Frequency": usage,
+    "Support Calls": support,
+    "Payment Delay": delay,
+    "Total Spend": spend,
+    "Last Interaction": last_interaction,
+    "Gender": gender,
+    "Subscription Type": sub_type,
+    "Contract Length": contract
+}])
+
+# ======================
+# PREDICT BUTTON (INI PENTING!)
+# ======================
+st.divider()
+
+predict_clicked = st.button(
+    "🔍 Predict Churn Risk",
+    use_container_width=True
+)
+
+# ======================
+# PREDICTION RESULT
+# ======================
+if predict_clicked:
+    pred = model.predict(input_df)[0]
+    prob = model.predict_proba(input_df)[0][1]
+
+    st.subheader("📈 Prediction Result")
+
+    colA, colB = st.columns(2)
+
+    with colA:
+        st.metric("Churn Probability", f"{prob:.1%}")
+
+    with colB:
+        status = "High Risk" if pred == 1 else "Low Risk"
+        st.metric("Churn Status", status)
+
+    if pred == 1:
+        st.error("🚨 Customer is at HIGH risk of churn")
+        st.markdown("""
+        ### 🎯 Recommended Actions
+        - Offer loyalty discounts
+        - Proactive customer support
+        - Personalized engagement
+        """)
+    else:
+        st.success("✅ Customer has LOW churn risk")
+        st.markdown("""
+        ### 💡 Recommended Actions
+        - Maintain service quality
+        - Upselling opportunities
+        - Loyalty programs
+        """)
